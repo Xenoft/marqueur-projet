@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjc3IiBoZWlnaHQ9IjI3NyIgdmlld0JveD0iMCAwIDI3NyAyNzciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjI3Ni40NzkiIGhlaWdodD0iMjc2LjQ3OSIgcng9IjEzOC4yNCIgZmlsbD0iYmxhY2siLz48cGF0aCBkPSJNMTk1LjEyNyAxOTAuNzk3SDgxLjM1NTVMODUuMzgyOCA4NS42ODMxSDEzMC4wMTlMMTM3LjkwNSAxMzIuODM2SDEzOS40MTZMMTQ3LjEzNSA4NS42ODMxSDE5MS4yNjdMMTk1LjEyNyAxOTAuNzk3WiIgZmlsbD0iI0Y1RjVGNSIvPjwvc3ZnPg==">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulateur de projet — Marqueur</title>
+  <style>
+    :root {
+      --black: #1A1414;
+      --white: #F5F5F5;
+      --yellow: #CEF563;
+      --muted: #8a7e7e;
+      --border: #2e2525;
+      --gray1: #221c1c;
+      --gray2: #2a2222;
+      --gray3: #332a2a;
+      --err: #ff5a5a;
+      --green: #4ade80;
+      --orange: #fb923c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      padding: 0 0 80px;
+    }
+
+    header {
+      padding: 0 32px;
+      height: 56px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--black);
+      z-index: 10;
+    }
+
+    .back {
+      font-size: 11px;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: .05em;
+    }
+    .back:hover { color: var(--white); }
+
+    .header-tool {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      letter-spacing: .05em;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 48px 20px 0;
+    }
+
+    .hero { margin-bottom: 40px; }
+
+    .eyebrow {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .section { margin-bottom: 12px; }
+
+    .section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field {
+      background: var(--gray1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .field-info { flex: 1; }
+
+    .field-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+
+    .field-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .field-input {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .field-unit {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    input[type="number"] {
+      background: var(--gray3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 12px;
+      width: 100px;
+      text-align: right;
+      outline: none;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus { border-color: var(--white); }
+
+    /* Révisions stepper */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--gray3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .stepper-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 700;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .stepper-btn:hover { color: var(--white); background: var(--gray2); }
+    .stepper-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white);
+      min-width: 28px;
+      text-align: center;
+    }
+
+    /* Frais checkbox list */
+    .frais-field {
+      background: var(--gray1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .frais-header {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .frais-header:hover { background: var(--gray2); }
+    .frais-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--white);
+    }
+    .frais-summary {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .frais-chevron {
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.2s;
+    }
+    .frais-chevron.open { transform: rotate(180deg); }
+    .frais-body {
+      display: none;
+      border-top: 1px solid var(--border);
+      padding: 8px 0;
+    }
+    .frais-body.open { display: block; }
+    .frais-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      gap: 12px;
+    }
+    .frais-row input[type="checkbox"] { display: none; }
+    .frais-check {
+      width: 16px; height: 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .frais-check.checked {
+      background: var(--yellow);
+      border-color: var(--yellow);
+    }
+    .frais-check.checked::after {
+      content: '';
+      width: 8px; height: 5px;
+      border-left: 2px solid var(--black);
+      border-bottom: 2px solid var(--black);
+      transform: rotate(-45deg) translateY(-1px);
+    }
+    .frais-label { flex: 1; font-size: 12px; color: var(--muted); cursor: pointer; }
+    .frais-input {
+      background: var(--gray3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 10px;
+      width: 80px;
+      text-align: right;
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .frais-input::-webkit-inner-spin-button,
+    .frais-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .frais-input:disabled { opacity: 0.3; }
+    .frais-input:focus { border-color: var(--white); }
+    .frais-unit { font-size: 10px; color: var(--muted); width: 20px; }
+
+    /* VERDICT */
+    .verdict-wrap {
+      margin-top: 32px;
+    }
+
+    .verdict-card {
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 8px;
+      transition: background 0.3s, border-color 0.3s;
+      border: 1px solid var(--border);
+      background: var(--gray1);
+    }
+
+    .verdict-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .verdict-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .verdict-status {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .verdict-marge {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1;
+      transition: color 0.3s;
+    }
+
+    .verdict-marge-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      text-align: right;
+    }
+
+    .verdict-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .verdict-stat {
+      background: var(--gray2);
+      border-radius: 10px;
+      padding: 12px;
+    }
+
+    .verdict-stat-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .verdict-stat-value {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .verdict-stat-value.good { color: var(--green); }
+    .verdict-stat-value.warn { color: var(--orange); }
+    .verdict-stat-value.bad  { color: var(--err); }
+
+    /* Jauge de risque */
+    .gauge-wrap {
+      margin-bottom: 16px;
+    }
+    .gauge-label-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .gauge-label {
+      font-size: 10px;
+      color: var(--muted);
+    }
+    .gauge-track {
+      height: 6px;
+      background: var(--gray3);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .gauge-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.4s ease, background 0.3s;
+    }
+
+    .insight {
+      background: var(--gray3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+      border-left: 2px solid var(--yellow);
+    }
+    .insight strong { color: var(--white); }
+
+    /* Seuil danger */
+    .seuil-wrap {
+      background: var(--gray1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .seuil-label {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .seuil-label strong { color: var(--white); font-size: 13px; }
+    .seuil-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--err);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .cta {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 48px;
+      text-align: center;
+    }
+    .cta-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .cta-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; line-height: 1.5; }
+    .btn-yellow {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--black);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      letter-spacing: .03em;
+      transition: opacity 0.15s;
+    }
+    .btn-yellow:hover { opacity: 0.85; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.4s ease both; }
+    .fade-up:nth-child(2) { animation-delay: .05s; }
+    .fade-up:nth-child(3) { animation-delay: .10s; }
+    .fade-up:nth-child(4) { animation-delay: .15s; }
+    .fade-up:nth-child(5) { animation-delay: .20s; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg height="24" viewBox="0 0 614 134" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block">
+    <path d="M65.3759 33.9059H79.8791V112H65.3759V70.8332L50.2034 112H33.5805L18.4079 70.8332V112H3.90471V33.9059H18.4079L41.9477 98.3893L65.3759 33.9059Z" fill="#F5F5F5"/>
+    <path d="M191.492 25.7812L191.492 115.224L108.855 112.058L108.855 76.9667L145.925 70.7664L145.925 69.5791L108.855 63.5107L108.855 28.8154L191.492 25.7812Z" fill="#F5F5F5"/>
+    <path d="M601.721 115.184L190.785 115.184L190.786 25.7812H597.904L601.721 115.184Z" fill="#F5F5F5"/>
+  </svg>
+  <span class="header-tool">Simulateur de projet</span>
+</header>
+
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero fade-up">
+    <div class="eyebrow">Outil gratuit</div>
+    <h1>Simulateur<br>de projet</h1>
+    <p class="subtitle">Ce devis est-il rentable ? Rentre les chiffres du projet — tu as ta réponse en 30 secondes.</p>
+  </div>
+
+  <!-- 1. Ton temps -->
+  <div class="section fade-up">
+    <div class="section-label">Ton temps</div>
+
+    <div class="field">
+      <div class="field-info">
+        <div class="field-name">Jours de production</div>
+        <div class="field-desc">Ton estimation honnête pour livrer — révisions non comprises</div>
+      </div>
+      <div class="field-input">
+        <input type="number" id="jours" value="4" min="0.5" step="0.5" oninput="calc()">
+        <span class="field-unit">j</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-info">
+        <div class="field-name">Révisions incluses</div>
+        <div class="field-desc">Allers-retours prévus dans le devis — c'est là que tu perds de l'argent</div>
+      </div>
+      <div class="field-input">
+        <div class="stepper">
+          <button class="stepper-btn" onclick="changeRev(-1)">−</button>
+          <span class="stepper-val" id="rev-val">2</span>
+          <button class="stepper-btn" onclick="changeRev(1)">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-info">
+        <div class="field-name">Temps par révision</div>
+        <div class="field-desc">En moyenne, combien de temps par aller-retour client</div>
+      </div>
+      <div class="field-input">
+        <input type="number" id="temps-rev" value="0.5" min="0" step="0.25" oninput="calc()">
+        <span class="field-unit">j</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. L'argent -->
+  <div class="section fade-up">
+    <div class="section-label">L'argent</div>
+
+    <div class="field">
+      <div class="field-info">
+        <div class="field-name">Montant du devis</div>
+        <div class="field-desc">Ce que tu factures au client, HT</div>
+      </div>
+      <div class="field-input">
+        <input type="number" id="devis" value="2000" min="0" oninput="calc()">
+        <span class="field-unit">€ HT</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-info">
+        <div class="field-name">Ton TJM</div>
+        <div class="field-desc">Ton taux journalier — <a href="https://marqueur-tjm.vercel.app" style="color:var(--yellow); text-decoration:none; font-weight:600">le calculer →</a></div>
+      </div>
+      <div class="field-input">
+        <input type="number" id="tjm" value="400" min="0" oninput="calc()">
+        <span class="field-unit">€/j</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Frais spécifiques -->
+  <div class="section fade-up">
+    <div class="frais-field">
+      <div class="frais-header" onclick="toggleFrais()">
+        <div>
+          <div class="frais-title">Frais spécifiques au projet</div>
+          <div class="frais-summary" id="frais-summary">0 € — cliquer pour détailler</div>
+        </div>
+        <span class="frais-chevron" id="frais-chevron">▼</span>
+      </div>
+      <div class="frais-body" id="frais-body">
+        <div class="frais-row">
+          <div class="frais-check" id="chk-impression" onclick="toggleFraisCheck('impression')"></div>
+          <label class="frais-label" onclick="toggleFraisCheck('impression')">Impression / façonnage</label>
+          <input type="number" class="frais-input" id="v-impression" value="0" disabled oninput="calc()">
+          <span class="frais-unit">€</span>
+        </div>
+        <div class="frais-row">
+          <div class="frais-check" id="chk-soustraitance" onclick="toggleFraisCheck('soustraitance')"></div>
+          <label class="frais-label" onclick="toggleFraisCheck('soustraitance')">Sous-traitance</label>
+          <input type="number" class="frais-input" id="v-soustraitance" value="0" disabled oninput="calc()">
+          <span class="frais-unit">€</span>
+        </div>
+        <div class="frais-row">
+          <div class="frais-check" id="chk-deplacement" onclick="toggleFraisCheck('deplacement')"></div>
+          <label class="frais-label" onclick="toggleFraisCheck('deplacement')">Déplacements</label>
+          <input type="number" class="frais-input" id="v-deplacement" value="0" disabled oninput="calc()">
+          <span class="frais-unit">€</span>
+        </div>
+        <div class="frais-row">
+          <div class="frais-check" id="chk-logiciels" onclick="toggleFraisCheck('logiciels')"></div>
+          <label class="frais-label" onclick="toggleFraisCheck('logiciels')">Licences / logiciels</label>
+          <input type="number" class="frais-input" id="v-logiciels" value="0" disabled oninput="calc()">
+          <span class="frais-unit">€</span>
+        </div>
+        <div class="frais-row">
+          <div class="frais-check" id="chk-autre" onclick="toggleFraisCheck('autre')"></div>
+          <label class="frais-label" onclick="toggleFraisCheck('autre')">Autre</label>
+          <input type="number" class="frais-input" id="v-autre" value="0" disabled oninput="calc()">
+          <span class="frais-unit">€</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="verdict-wrap fade-up">
+    <div class="verdict-card" id="verdict-card">
+      <div class="verdict-top">
+        <div>
+          <div class="verdict-label">Verdict</div>
+          <div class="verdict-status" id="verdict-status">—</div>
+        </div>
+        <div style="text-align:right">
+          <div class="verdict-marge" id="verdict-marge">—</div>
+          <div class="verdict-marge-label">de marge nette</div>
+        </div>
+      </div>
+
+      <!-- Jauge -->
+      <div class="gauge-wrap">
+        <div class="gauge-label-row">
+          <span class="gauge-label">Rentabilité</span>
+          <span class="gauge-label" id="gauge-pct-label">—</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="gauge-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="verdict-grid">
+        <div class="verdict-stat">
+          <div class="verdict-stat-label">TJM effectif</div>
+          <div class="verdict-stat-value" id="tjm-effectif">—</div>
+        </div>
+        <div class="verdict-stat">
+          <div class="verdict-stat-label">Temps total</div>
+          <div class="verdict-stat-value" id="temps-total">—</div>
+        </div>
+        <div class="verdict-stat">
+          <div class="verdict-stat-label">Marge brute</div>
+          <div class="verdict-stat-value" id="marge-brute">—</div>
+        </div>
+      </div>
+
+      <div class="insight" id="insight-projet"></div>
+    </div>
+
+    <!-- Seuil de danger -->
+    <div class="seuil-wrap" id="seuil-wrap">
+      <div class="seuil-label">
+        <strong>Seuil de perte</strong><br>
+        Tu travailles à perte si le projet dépasse
+      </div>
+      <div class="seuil-val" id="seuil-val">—</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta fade-up">
+    <div class="cta-title">Tu veux aller plus loin ?</div>
+    <div class="cta-sub">Stratégie tarifaire, comment défendre ton devis, comment sélectionner tes clients. On en parle en 45 min.</div>
+    <a href="https://ionian-handball-f23.notion.site/Marqueur-Mini-Conseil-22af125382be8093b6f6e60197e4b848" target="_blank" class="btn-yellow">Mini Conseil — 50€ →</a>
+  </div>
+
+</div>
+
+<script>
+  let revisions = 2;
+  const fraisIds = ['impression', 'soustraitance', 'deplacement', 'logiciels', 'autre'];
+  const fraisChecked = {};
+  fraisIds.forEach(id => fraisChecked[id] = false);
+
+  function changeRev(delta) {
+    revisions = Math.max(0, Math.min(10, revisions + delta));
+    document.getElementById('rev-val').textContent = revisions;
+    calc();
+  }
+
+  function toggleFrais() {
+    const body = document.getElementById('frais-body');
+    const chevron = document.getElementById('frais-chevron');
+    body.classList.toggle('open');
+    chevron.classList.toggle('open');
+  }
+
+  function toggleFraisCheck(id) {
+    fraisChecked[id] = !fraisChecked[id];
+    const chk = document.getElementById('chk-' + id);
+    const input = document.getElementById('v-' + id);
+    if (fraisChecked[id]) {
+      chk.classList.add('checked');
+      input.disabled = false;
+    } else {
+      chk.classList.remove('checked');
+      input.disabled = true;
+    }
+    calc();
+  }
+
+  function getFraisTotal() {
+    let total = 0;
+    fraisIds.forEach(id => {
+      if (fraisChecked[id]) {
+        total += parseFloat(document.getElementById('v-' + id).value) || 0;
+      }
+    });
+    return total;
+  }
+
+  function updateFraisSummary() {
+    const total = getFraisTotal();
+    const actifs = fraisIds.filter(id => fraisChecked[id]).length;
+    const summary = document.getElementById('frais-summary');
+    summary.textContent = total > 0
+      ? fmt(total) + ' € · ' + actifs + ' poste' + (actifs > 1 ? 's' : '') + ' — cliquer pour détailler'
+      : '0 € — cliquer pour détailler';
+  }
+
+  function fmt(n) {
+    return Math.round(n).toLocaleString('fr-FR');
+  }
+
+  function calc() {
+    updateFraisSummary();
+
+    const devis    = parseFloat(document.getElementById('devis').value)    || 0;
+    const jours    = parseFloat(document.getElementById('jours').value)    || 0;
+    const tjm      = parseFloat(document.getElementById('tjm').value)      || 0;
+    const tempsRev = parseFloat(document.getElementById('temps-rev').value) || 0;
+    const frais    = getFraisTotal();
+
+    // Calculs
+    const tempsRevTotal  = revisions * tempsRev;       // jours de révisions
+    const tempsTotal     = jours + tempsRevTotal;      // jours total réels
+    const coutTemps      = tempsTotal * tjm;           // ce que ça te coûte en temps
+    const coutTotal      = coutTemps + frais;          // coût réel complet
+    const margeNette     = devis - coutTotal;          // ce que tu gagnes vraiment
+    const margePct       = coutTotal > 0 ? (margeNette / devis) * 100 : 0;
+    const tjmEffectif    = tempsTotal > 0 ? (devis - frais) / tempsTotal : 0;
+
+    // Seuil : combien de jours max avant de travailler à perte
+    // devis - frais - (joursMax * tjm) = 0 → joursMax = (devis - frais) / tjm
+    const joursMax = tjm > 0 ? (devis - frais) / tjm : 0;
+
+    // Update stats
+    const tjmEffEl = document.getElementById('tjm-effectif');
+    tjmEffEl.textContent = fmt(tjmEffectif) + ' €/j';
+    tjmEffEl.className = 'verdict-stat-value' + (tjmEffectif >= tjm ? ' good' : tjmEffectif >= tjm * 0.8 ? ' warn' : ' bad');
+
+    document.getElementById('temps-total').textContent = tempsTotal % 1 === 0 ? tempsTotal + ' j' : tempsTotal.toFixed(1) + ' j';
+    document.getElementById('marge-brute').textContent = fmt(margeNette) + ' €';
+
+    const margeEl = document.getElementById('verdict-marge');
+    margeEl.textContent = (margePct >= 0 ? '+' : '') + Math.round(margePct) + '%';
+
+    // Gauge
+    const gaugePct = Math.min(100, Math.max(0, margePct));
+    const gaugeFill = document.getElementById('gauge-fill');
+    gaugeFill.style.width = gaugePct + '%';
+
+    // Couleurs selon marge
+    let color, status, borderColor;
+    if (margePct >= 30) {
+      color = 'var(--green)'; status = '✅ Bon deal'; borderColor = 'rgba(74,222,128,0.2)';
+      gaugeFill.style.background = 'var(--green)';
+    } else if (margePct >= 10) {
+      color = 'var(--yellow)'; status = '⚠️ Limite'; borderColor = 'rgba(206,245,99,0.15)';
+      gaugeFill.style.background = 'var(--yellow)';
+    } else if (margePct >= 0) {
+      color = 'var(--orange)'; status = '🔶 Risqué'; borderColor = 'rgba(251,146,60,0.15)';
+      gaugeFill.style.background = 'var(--orange)';
+    } else {
+      color = 'var(--err)'; status = '🔴 À perte'; borderColor = 'rgba(255,90,90,0.15)';
+      gaugeFill.style.background = 'var(--err)';
+    }
+
+    margeEl.style.color = color;
+    document.getElementById('verdict-status').textContent = status;
+    document.getElementById('gauge-pct-label').textContent = Math.round(margePct) + '%';
+
+    const card = document.getElementById('verdict-card');
+    card.style.borderColor = borderColor.replace('0.15', '0.4').replace('0.2', '0.5');
+
+    // Seuil de perte
+    const seuilEl = document.getElementById('seuil-val');
+    if (joursMax > 0 && joursMax < 999) {
+      seuilEl.textContent = joursMax.toFixed(1) + ' j';
+      const depassement = joursMax - tempsTotal;
+      document.getElementById('seuil-wrap').style.display = depassement > 0 ? 'flex' : 'flex';
+    } else {
+      seuilEl.textContent = '—';
+    }
+
+    // Insight contextuel
+    let conseil = '';
+    const depasseDevis = tempsTotal > jours;
+    const tjmRatio = tjmEffectif / tjm;
+
+    if (margePct < 0) {
+      const manque = fmt(Math.abs(margeNette));
+      conseil = `Ce projet te coûte <strong>${manque} €</strong> de plus qu'il ne t'en rapporte. Avec ${tempsTotal.toFixed(1)} jours de travail réel (révisions comprises), ton TJM effectif tombe à <strong>${fmt(tjmEffectif)} €/j</strong> alors que ton plancher est <strong>${fmt(tjm)} €/j</strong>.<br><br><strong>À renégocier avant d'accepter</strong> : augmente le devis de ${manque} € minimum, ou réduis le périmètre.`;
+    } else if (margePct < 10) {
+      conseil = `La marge est très faible — le moindre dérapage et tu travailles à perte. Il te reste <strong>${(joursMax - tempsTotal).toFixed(1)} jour(s)</strong> de marge avant le seuil critique.<br><br><strong>Protège-toi</strong> : précise dans le devis ce qui est hors périmètre, facture les révisions supplémentaires.`;
+    } else if (margePct < 30) {
+      conseil = `Projet rentable mais serré. Ton TJM effectif est <strong>${fmt(tjmEffectif)} €/j</strong>${tjmRatio < 1 ? ` — en dessous de ton TJM cible de ${fmt(tjm)} €/j` : ''}. Les révisions ${revisions > 2 ? 'nombreuses' : ''} grignotent ta marge.<br><br><strong>Conseil</strong> : si le client est bon et récurrent, ça peut valoir le coup. Sinon, cadre mieux le périmètre ou augmente légèrement le devis.`;
+    } else {
+      conseil = `Bon projet. Ton TJM effectif de <strong>${fmt(tjmEffectif)} €/j</strong> est ${tjmRatio >= 1.2 ? 'nettement au-dessus' : 'au-dessus'} de ton TJM cible — tu es dans de bonnes conditions.<br><br><strong>Reste vigilant</strong> : le seuil de perte est à <strong>${joursMax.toFixed(1)} jours</strong>. Documente bien le périmètre pour éviter le scope creep.`;
+    }
+
+    document.getElementById('insight-projet').innerHTML = conseil;
+  }
+
+  // Init
+  document.addEventListener('DOMContentLoaded', () => {
+    calc();
+  });
+</script>
+</body>
+</html>
